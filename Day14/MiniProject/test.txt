@@ -1,0 +1,14 @@
+Name             PhoneNumber  Address   E-mail
+YoungJin  :  010-123-4567  :  Seoul  :  AAA@BBB
+SeoYeon  :  010-456-7890  :  Busan  :  CCC@DDD
+SungYeul  :  010-321-0987  :  Osan  :  EEE@FFF
+
+ID        ProductName    Price   ProductKind
+F-C-001  :  Chair  :  100000  :  Furniture
+H-T-002  :  Toothpaste  :  5000  :  Householdgoods
+E-M-003  :  Monitor  :  150000  :  Electronics
+
+PurchaseDate  ClientInfo    ProductInfo    PurchaseAmount         DinscountInfo
+2018/02/18  :  YoungJin  :  Chair  :  1  :  Normal
+2019/08/22  :  SeoYeon  :  Toothpaste  :  10  :  Normal
+2022/12/15  :  SungYeul  :  Monitor  :  3  :  VIP

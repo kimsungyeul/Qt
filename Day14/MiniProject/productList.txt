@@ -1,0 +1,10 @@
+50000, funiture, chair, 50000, 70
+50001, funiture, door, 30000, 500
+50002, lifegoods, toothpaste, 3000, 1000
+50003, funiture, chair, 25000, 990
+50004, food, rice, 500, 1000
+50005, funiture, chair, 50000, 150
+50006, funiture, door, 10000, 50
+50007, lifegoods, toothpaste, 30000, 430
+50008, funiture, chair, 2500, 0
+50009, food, rice, 3500, 100

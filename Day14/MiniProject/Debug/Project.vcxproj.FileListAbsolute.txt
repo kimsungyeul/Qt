@@ -1,0 +1,3 @@
+C:\MiniProject-master\MiniProject-master\Debug\Project.exe
+C:\Project\MiniProject-master\Debug\Project.exe
+C:\Project\MiniProject\Debug\Project.exe

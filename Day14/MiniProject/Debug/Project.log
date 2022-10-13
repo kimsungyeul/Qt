@@ -1,0 +1,14 @@
+﻿  client.cpp
+  clientmanager.cpp
+  Manage_UI.cpp
+  main.cpp
+  product.cpp
+  productmanager.cpp
+  shoplist.cpp
+  shoplistmanager.cpp
+C:\Project\MiniProject\shoplistmanager.cpp(324,15): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  코드를 생성하고 있습니다...
+C:\Project\MiniProject\Manage_UI.cpp(521): warning C4715: 'ManageUi::findClientByCode': 모든 제어 경로에서 값을 반환하지는 않습니다.
+C:\Project\MiniProject\Manage_UI.cpp(550): warning C4715: 'ManageUi::findClientByName': 모든 제어 경로에서 값을 반환하지는 않습니다.
+  LINK : C:\Project\MiniProject\Debug\Project.exe을(를) 찾을 수 없거나 마지막 증분 링크에 의해 빌드되지 않았습니다. 전체 링크를 수행하고 있습니다.
+  Project.vcxproj -> C:\Project\MiniProject\Debug\Project.exe
