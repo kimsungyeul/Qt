@@ -116,10 +116,16 @@ void OrderManagerForm::on_clientcomboBox_currentIndexChanged(int index)
         ui->clientInfocomboBox->clear();
     }
     else if (index == 1) {
-
+        qDebug("%d",index);
+        emit clientDataSent(index);
     }
     else if (index == 2) {
         qDebug("%d",index);
     }
 }
 
+void OrderManagerForm::ClientDataListRecv(QString IdList)
+{
+    qDebug("%d",5);
+    ui->clientInfocomboBox->addItem(IdList);
+}

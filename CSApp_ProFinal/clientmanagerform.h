@@ -26,6 +26,8 @@ public:
 public slots:
     void clientIdDataRecv(int,QTreeWidgetItem*);
 
+    void clientIdListData(int);
+
 private slots:
     /* QTreeWidget을 위한 슬롯 */
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
@@ -40,6 +42,8 @@ private slots:
 
 signals:
     void clientAdded(QString);
+
+    void clientDataListSent(QString);
 
     void clientIdDataSent(ClientItem*,QTreeWidgetItem*);
 private:

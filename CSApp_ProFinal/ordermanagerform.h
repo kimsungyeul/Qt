@@ -2,7 +2,6 @@
 #define ORDERMANAGERFORM_H
 
 #include "clientitem.h"
-#include "productitem.h"
 #include <QWidget>
 #include <QHash>
 
@@ -30,6 +29,8 @@ public:
 public slots:
     void ClientIdDataRecv(ClientItem*,QTreeWidgetItem*);
 
+    void ClientDataListRecv(QString);
+
 private slots:
     void showContextMenu(const QPoint &);
     void removeItem();
@@ -38,6 +39,8 @@ private slots:
 
 signals:
     void orderAdded(QString);
+
+    void clientDataSent(int);
 
     void ClientIdDataSent(int,QTreeWidgetItem*);
 

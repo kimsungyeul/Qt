@@ -10,8 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    //    ClientManagerForm *clientForm1 = new ClientManagerForm(0);
-    //    clientForm1->show();
+
     clientForm = new ClientManagerForm(this);
     clientForm->setWindowTitle(tr("Client Info"));
     connect(clientForm, SIGNAL(destroyed()),
@@ -32,6 +31,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->mdiArea->setActiveSubWindow(cw);
     ui->mdiArea->setActiveSubWindow(pw);
     ui->mdiArea->setActiveSubWindow(ow);
+
+    //ClientManagerForm에서 검색한 리스트를 OrderManagerForm으로 전달
+    connect(clientForm, SIGNAL(clientDataListSent(QString)), orderForm, SLOT(ClientDataListRecv(QString)));
+
+    // Qstring을 받아와서 ClientManager에 원하는 인자 전해줘서 리스트 검색
+    connect(orderForm, SIGNAL(ClientDataSent(int)), clientForm, SLOT(clientIdListData(int)));
 
     connect(orderForm,SIGNAL(ClientIdDataSent(int,QTreeWidgetItem*)),clientForm,SLOT(clientIdDataRecv(int,QTreeWidgetItem*)));
     connect(clientForm,SIGNAL(clientIdDataSent(ClientItem*,QTreeWidgetItem*)),orderForm,SLOT(ClientIdDataRecv(ClientItem*,QTreeWidgetItem*)));

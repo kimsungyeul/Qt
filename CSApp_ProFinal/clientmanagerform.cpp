@@ -192,6 +192,57 @@ void ClientManagerForm::on_deletePushButton_clicked()
     removeItem();
 }
 
+void ClientManagerForm::clientIdListData(int index)
+{
+    ui->searchTreeWidget->clear();
+    qDebug("%d",index);
+//    for(int i = 0; i < ui->treeWidget->columnCount(); i++)
+    QTreeWidgetItem* row = new QTreeWidgetItem(ui->clienttreeWidget);
+    QWidget* IdItemList = ui->clienttreeWidget->itemWidget(row,0);
+    QString IdList;
+    qDebug("%d",index);
+    for(int i=0;i<5;i++){
+        IdList.append(QString::number(i));
+    }
+//    for(int i = 0; i < ui->clienttreeWidget->columnCount(); i++){
+//        IdItemList->
+//    }
+//    //auto flag = (i)? Qt::MatchCaseSensitive|Qt::MatchContains:Qt::MatchCaseSensitive;
+//    {
+//        //auto items = ui->clienttreeWidget->findItems(ui->searchLineEdit->text(), flag, i);
+
+//        foreach(auto i) {
+//            ClientItem* c = static_cast<ClientItem*>(i);
+//            int id = c->id();
+//            QString name = c->getName();
+//            QString number = c->getPhoneNumber();
+//            QString address = c->getAddress();
+//            ClientItem* item = new ClientItem(id, name, number, address);
+//            ui->searchTreeWidget->addTopLevelItem(item);
+//        }
+//    }
+
+//    //auto items = ui->clienttreeWidget->findItems(QString::number(id),Qt::MatchContains | Qt::MatchCaseSensitive,0);
+//    auto items = ui->clienttreeWidget->
+//    //QTreeWidgetItem* row = new QTreeWidgetItem(ui->clienttreeWidget);
+//    auto items = ui->clienttreeWidget->topLevelItem(0);
+
+//    QList<QString> IdList;
+
+//    foreach(auto i, items) {
+//        ClientItem* c = static_cast<ClientItem*>(i);
+//        int cid = c->id();
+//        QString name = c->getName();
+//        QString number = c->getPhoneNumber();
+//        QString address = c->getAddress();
+//        ClientItem* item = new ClientItem(cid, name, number, address);
+//        IdList.append(QString::number(item->id()));
+//    }
+    qDebug("%d",2);
+    emit clientDataListSent(IdList);
+    qDebug("%d",3);
+}
+
 void ClientManagerForm::clientIdDataRecv(int id,QTreeWidgetItem* row)
 {
     Q_UNUSED(row);
