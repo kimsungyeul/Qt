@@ -2,6 +2,7 @@
 #define ORDERMANAGERFORM_H
 
 #include "clientitem.h"
+#include "productitem.h"
 #include <QWidget>
 #include <QHash>
 
@@ -27,9 +28,10 @@ public:
     void loadData();
 
 public slots:
-    void ClientIdDataRecv(ClientItem*,QTreeWidgetItem*);
-
-    void ClientDataListRecv(QString);
+    void clientDataListRecv(QList<QString>);
+    void clientFindDataRecv(ClientItem*);
+    void productDataListRecv(QList<QString>);
+    void productFindDataRecv(ProductItem*);
 
 private slots:
     void showContextMenu(const QPoint &);
@@ -37,12 +39,23 @@ private slots:
 
     void on_clientcomboBox_currentIndexChanged(int index);
 
+    void on_clientInfocomboBox_textActivated(const QString &arg1);
+
+    void on_clienttreeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
+
+    void on_productcomboBox_currentIndexChanged(int index);
+
+    void on_productInfocomboBox_textActivated(const QString &arg1);
+
+    void on_producttreeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
+
 signals:
     void orderAdded(QString);
 
     void clientDataSent(int);
-
-    void ClientIdDataSent(int,QTreeWidgetItem*);
+    void clientDataSent(QString);
+    void productDataSent(int);
+    void productDataSent(QString);
 
 private:
     int makeOId();

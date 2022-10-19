@@ -25,7 +25,10 @@ ClientManagerForm::ClientManagerForm(QWidget *parent) :
 
     connect(ui->searchLineEdit, SIGNAL(returnPressed()),
             this, SLOT(on_searchPushButton_clicked()));
+}
 
+void ClientManagerForm::loadData()
+{
     QFile file("clientlist.txt");
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
@@ -39,33 +42,10 @@ ClientManagerForm::ClientManagerForm(QWidget *parent) :
             ClientItem* c = new ClientItem(id, row[1], row[2], row[3]);
             ui->clienttreeWidget->addTopLevelItem(c);
             clientList.insert(id, c);
-
-            emit clientAdded(row[1]);
+            emit clientAdded(id,row[1]);
         }
     }
     file.close( );
-}
-
-void ClientManagerForm::loadData()
-{
-//    QFile file("clientlist.txt");
-//    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-//        return;
-
-//    QTextStream in(&file);
-//    while (!in.atEnd()) {
-//        QString line = in.readLine();
-//        QList<QString> row = line.split(", ");
-//        if(row.size()) {
-//            int id = row[0].toInt();
-//            ClientItem* c = new ClientItem(id, row[1], row[2], row[3]);
-//            ui->treeWidget->addTopLevelItem(c);
-//            clientList.insert(id, c);
-
-//            emit clientAdded(row[1]);
-//        }
-//    }
-//    file.close( );
 }
 
 ClientManagerForm::~ClientManagerForm()
@@ -163,11 +143,11 @@ void ClientManagerForm::on_addPushButton_clicked()
         ClientItem* c = new ClientItem(id, name, number, address);
         clientList.insert(id, c);
         ui->clienttreeWidget->addTopLevelItem(c);
-        emit clientAdded(name);
+        emit clientAdded(id,name);
     }
 }
 
-void ClientManagerForm::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
+void ClientManagerForm::on_clienttreeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column);
     ui->idLineEdit->setText(item->text(0));
@@ -195,66 +175,39 @@ void ClientManagerForm::on_deletePushButton_clicked()
 void ClientManagerForm::clientIdListData(int index)
 {
     ui->searchTreeWidget->clear();
-    qDebug("%d",index);
-//    for(int i = 0; i < ui->treeWidget->columnCount(); i++)
-    QTreeWidgetItem* row = new QTreeWidgetItem(ui->clienttreeWidget);
-    QWidget* IdItemList = ui->clienttreeWidget->itemWidget(row,0);
-    QString IdList;
-    qDebug("%d",index);
-    for(int i=0;i<5;i++){
-        IdList.append(QString::number(i));
+    QString Idstr;
+    QList<QString> IdList;
+
+    int sentid;
+    QString sentname;
+
+    for (const auto& v : clientList) {
+        ClientItem* c = v;
+        sentid = c->id();
+        sentname = c->getName();
+
+        Idstr = QString("%1, %2").arg(sentid).arg(sentname);
+        IdList.append(Idstr);
     }
-//    for(int i = 0; i < ui->clienttreeWidget->columnCount(); i++){
-//        IdItemList->
-//    }
-//    //auto flag = (i)? Qt::MatchCaseSensitive|Qt::MatchContains:Qt::MatchCaseSensitive;
-//    {
-//        //auto items = ui->clienttreeWidget->findItems(ui->searchLineEdit->text(), flag, i);
 
-//        foreach(auto i) {
-//            ClientItem* c = static_cast<ClientItem*>(i);
-//            int id = c->id();
-//            QString name = c->getName();
-//            QString number = c->getPhoneNumber();
-//            QString address = c->getAddress();
-//            ClientItem* item = new ClientItem(id, name, number, address);
-//            ui->searchTreeWidget->addTopLevelItem(item);
-//        }
-//    }
-
-//    //auto items = ui->clienttreeWidget->findItems(QString::number(id),Qt::MatchContains | Qt::MatchCaseSensitive,0);
-//    auto items = ui->clienttreeWidget->
-//    //QTreeWidgetItem* row = new QTreeWidgetItem(ui->clienttreeWidget);
-//    auto items = ui->clienttreeWidget->topLevelItem(0);
-
-//    QList<QString> IdList;
-
-//    foreach(auto i, items) {
-//        ClientItem* c = static_cast<ClientItem*>(i);
-//        int cid = c->id();
-//        QString name = c->getName();
-//        QString number = c->getPhoneNumber();
-//        QString address = c->getAddress();
-//        ClientItem* item = new ClientItem(cid, name, number, address);
-//        IdList.append(QString::number(item->id()));
-//    }
-    qDebug("%d",2);
     emit clientDataListSent(IdList);
-    qDebug("%d",3);
 }
 
-void ClientManagerForm::clientIdDataRecv(int id,QTreeWidgetItem* row)
+void ClientManagerForm::clientNameListData(QString name)
 {
-    Q_UNUSED(row);
+    ui->searchTreeWidget->clear();
 
-    auto items = ui->clienttreeWidget->findItems(QString::number(id),Qt::MatchContains | Qt::MatchCaseSensitive,0);
+    auto items = ui->clienttreeWidget->findItems(name,Qt::MatchCaseSensitive|Qt::MatchContains,1);
 
     foreach(auto i, items) {
         ClientItem* c = static_cast<ClientItem*>(i);
+        int id = c->id();
         QString name = c->getName();
         QString number = c->getPhoneNumber();
         QString address = c->getAddress();
-        ClientItem* client = new ClientItem(id, name, number, address);
-        emit clientIdDataSent(client,row);
+        ClientItem* item = new ClientItem(id, name, number, address);
+        emit clientFindDataSent(item);
     }
 }
+
+

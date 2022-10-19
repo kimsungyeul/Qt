@@ -26,7 +26,8 @@ OrderManagerForm::OrderManagerForm(QWidget *parent) :
     QFile file("orderlist.txt");
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
-
+    //ui->messageTreeWidget->resizeColumnToContents(i);
+    //ui->clienttreeWidget->resizeColumnToContents(0);
     QTextStream in(&file);
     while (!in.atEnd()) {
         QString line = in.readLine();
@@ -95,37 +96,114 @@ void OrderManagerForm::showContextMenu(const QPoint &pos)
     menu->exec(globalPos);
 }
 
-void OrderManagerForm::ClientIdDataRecv(ClientItem* ClientItem,QTreeWidgetItem* row)
-{
-    QString name, phonnumber, address;
-    int cid;
-    cid = ClientItem->id();
-    name = ClientItem->getName();
-    phonnumber = ClientItem->getPhoneNumber();
-    address = ClientItem->getAddress();
-    if(cid) {
-        //row->setText(1,tr(cid));
-    }
-}
-
 void OrderManagerForm::on_clientcomboBox_currentIndexChanged(int index)
 {
     ui->clientInfocomboBox->clear();
 
     if (index == 0) {
+        ui->clientInfocomboBox->setEditable(false);
+        ui->clienttreeWidget->clear();
         ui->clientInfocomboBox->clear();
     }
     else if (index == 1) {
-        qDebug("%d",index);
+        ui->clientInfocomboBox->setEditable(false);
         emit clientDataSent(index);
     }
     else if (index == 2) {
-        qDebug("%d",index);
+        ui->clientInfocomboBox->setEditable(true);
+        ui->clientInfocomboBox->setMaxVisibleItems(5);
     }
 }
 
-void OrderManagerForm::ClientDataListRecv(QString IdList)
+void OrderManagerForm::on_clientInfocomboBox_textActivated(const QString &arg1)
 {
-    qDebug("%d",5);
-    ui->clientInfocomboBox->addItem(IdList);
+    ui->clienttreeWidget->clear();
+
+    if(ui->clientcomboBox->currentIndex() == 1){
+        QList<QString> row = arg1.split(", ");
+        emit clientDataSent(row[1]);
+    }
+    else if(ui->clientcomboBox->currentIndex() == 2){
+        emit clientDataSent(arg1);
+    }
 }
+
+void OrderManagerForm::clientFindDataRecv(ClientItem* item)
+{
+    if(item->getName().length()) {
+        ui->clienttreeWidget->addTopLevelItem(item);
+    }
+}
+
+
+
+void OrderManagerForm::clientDataListRecv(QList<QString> IdList)
+{
+    ui->clientInfocomboBox->addItems(IdList);
+}
+
+void OrderManagerForm::on_clienttreeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column)
+{
+    Q_UNUSED(column);
+
+    QTreeWidgetItem* c = ui->clienttreeWidget->currentItem();
+    if(c != nullptr) {
+        ui->nameLineEdit->setText(item->text(1));
+    }
+}
+
+void OrderManagerForm::on_productcomboBox_currentIndexChanged(int index)
+{
+    ui->productInfocomboBox->clear();
+
+    if (index == 0) {
+        ui->productInfocomboBox->setEditable(false);
+        ui->producttreeWidget->clear();
+        ui->productInfocomboBox->clear();
+    }
+    else if (index == 1) {
+        ui->productInfocomboBox->setEditable(false);
+        emit productDataSent(index);
+    }
+    else if (index == 2) {
+        ui->productInfocomboBox->setEditable(true);
+        ui->productInfocomboBox->setMaxVisibleItems(5);
+    }
+}
+
+void OrderManagerForm::on_productInfocomboBox_textActivated(const QString &arg1)
+{
+    ui->producttreeWidget->clear();
+
+    if(ui->productcomboBox->currentIndex() == 1){
+        QList<QString> row = arg1.split(", ");
+        emit productDataSent(row[1]);
+    }
+    else if(ui->productcomboBox->currentIndex() == 2){
+        emit productDataSent(arg1);
+    }
+}
+
+void OrderManagerForm::productFindDataRecv(ProductItem* item)
+{
+    if(item->getPName().length()) {
+        ui->producttreeWidget->addTopLevelItem(item);
+    }
+}
+
+void OrderManagerForm::productDataListRecv(QList<QString> PIdList)
+{
+    ui->productInfocomboBox->addItems(PIdList);
+}
+
+void OrderManagerForm::on_producttreeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column)
+{
+    Q_UNUSED(column);
+
+    QTreeWidgetItem* p = ui->producttreeWidget->currentItem();
+    if(p != nullptr) {
+        ui->pnameLineEdit->setText(item->text(1));
+        ui->stockLineEdit->setText(item->text(3));
+    }
+}
+

@@ -22,6 +22,9 @@ public:
     explicit ProductManagerForm(QWidget *parent = nullptr);
     ~ProductManagerForm();
     void loadData();
+public slots:
+    void productIdListData(int);
+    void productNameListData(QString);
 
 private slots:
     void showContextMenu(const QPoint &);
@@ -37,11 +40,12 @@ private slots:
 
     void on_deletePushButton_clicked();
 
-    void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
+    void on_producttreeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
 signals:
     void productAdded(QString);
-
+    void productDataListSent(QList<QString>);
+    void productFindDataSent(ProductItem*);
 private:
     int makePId();
 

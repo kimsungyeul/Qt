@@ -10,6 +10,7 @@ QT_END_NAMESPACE
 class ClientManagerForm;
 class ProductManagerForm;
 class OrderManagerForm;
+class ChatServer;
 
 class MainWindow : public QMainWindow
 {
@@ -27,5 +28,6 @@ private:
     ClientManagerForm *clientForm;
     ProductManagerForm *productForm;
     OrderManagerForm *orderForm;
+    ChatServer * chatserverForm;
 };
 #endif // MAINWINDOW_H

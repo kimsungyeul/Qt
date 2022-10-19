@@ -13,144 +13,173 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_4">
+  <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
      <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
+        <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QComboBox" name="clientcomboBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-             <horstretch>10</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="currentText">
-            <string>--Client Select--</string>
-           </property>
-           <property name="placeholderText">
-            <string extracomment="Client Select"/>
-           </property>
+          <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <property name="text">
-             <string>--Client Select--</string>
-            </property>
+            <widget class="QComboBox" name="clientcomboBox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>10</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="currentText">
+              <string>--Client Select--</string>
+             </property>
+             <property name="placeholderText">
+              <string extracomment="Client Select"/>
+             </property>
+             <item>
+              <property name="text">
+               <string>--Client Select--</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>CID</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>ClientName</string>
+              </property>
+             </item>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>CID</string>
-            </property>
+            <widget class="QComboBox" name="clientInfocomboBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
-           <item>
-            <property name="text">
-             <string>ClientName</string>
-            </property>
-           </item>
-          </widget>
+          </layout>
          </item>
          <item>
-          <widget class="QComboBox" name="clientInfocomboBox">
-           <property name="enabled">
+          <widget class="QTreeWidget" name="clienttreeWidget">
+           <property name="textElideMode">
+            <enum>Qt::ElideLeft</enum>
+           </property>
+           <property name="rootIsDecorated">
+            <bool>false</bool>
+           </property>
+           <property name="wordWrap">
             <bool>true</bool>
            </property>
+           <property name="headerHidden">
+            <bool>false</bool>
+           </property>
+           <attribute name="headerVisible">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="headerMinimumSectionSize">
+            <number>0</number>
+           </attribute>
+           <column>
+            <property name="text">
+             <string notr="true">CID</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Name</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Phone Number</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Address</string>
+            </property>
+           </column>
           </widget>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="QTreeWidget" name="clienttreeWidget">
-         <column>
-          <property name="text">
-           <string notr="true">CID</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Name</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Phone Number</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Address</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QComboBox" name="productcomboBox">
-           <property name="enabled">
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QComboBox" name="productcomboBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>10</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="currentText">
+              <string>--Product Select--</string>
+             </property>
+             <property name="placeholderText">
+              <string extracomment="Product Select"/>
+             </property>
+             <item>
+              <property name="text">
+               <string>--Product Select--</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>PID</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>ProductName</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="productInfocomboBox"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QTreeWidget" name="producttreeWidget">
+           <property name="rootIsDecorated">
             <bool>true</bool>
            </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-             <horstretch>10</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="currentText">
-            <string>--Product Select--</string>
-           </property>
-           <property name="placeholderText">
-            <string extracomment="Product Select"/>
-           </property>
-           <item>
+           <column>
             <property name="text">
-             <string>--Product Select--</string>
+             <string notr="true">PID</string>
             </property>
-           </item>
-           <item>
+           </column>
+           <column>
             <property name="text">
-             <string>PID</string>
+             <string>Product Name</string>
             </property>
-           </item>
-           <item>
+           </column>
+           <column>
             <property name="text">
-             <string>ProductName</string>
+             <string>Price</string>
             </property>
-           </item>
+           </column>
+           <column>
+            <property name="text">
+             <string>Stock</string>
+            </property>
+           </column>
           </widget>
          </item>
-         <item>
-          <widget class="QComboBox" name="productInfocomboBox"/>
-         </item>
         </layout>
-       </item>
-       <item>
-        <widget class="QTreeWidget" name="producttreeWidget">
-         <column>
-          <property name="text">
-           <string notr="true">PID</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Product Name</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Price</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Stock</string>
-          </property>
-         </column>
-        </widget>
        </item>
        <item>
         <layout class="QFormLayout" name="formLayout">
@@ -309,6 +338,12 @@
      </widget>
      <widget class="QTreeWidget" name="ordertreeWidget">
       <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="textElideMode">
+       <enum>Qt::ElideRight</enum>
+      </property>
+      <property name="rootIsDecorated">
        <bool>true</bool>
       </property>
       <column>

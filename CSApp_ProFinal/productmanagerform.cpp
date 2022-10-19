@@ -46,13 +46,6 @@ ProductManagerForm::ProductManagerForm(QWidget *parent) :
         }
     }
     file.close( );
-
-//    QTreeWidgetItem* item = new QTreeWidgetItem(ui->treeWidget);
-//    item->setText(0, "100");
-//    item->setText(1, "원주연");
-//    item->setText(2, "010-1234-4567");
-//    item->setText(3, "대한민국");
-
 }
 
 ProductManagerForm::~ProductManagerForm()
@@ -69,6 +62,30 @@ ProductManagerForm::~ProductManagerForm()
         out << p->pid() << ", " << p->getPName() << ", ";
         out << p->getPrice() << ", ";
         out << p->getStock() << "\n";
+    }
+    file.close( );
+}
+
+void ProductManagerForm::loadData()
+{
+    QFile file("productlist.txt");
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        QList<QString> row = line.split(", ");
+        if(row.size()) {
+            int pid = row[0].toInt();
+            int price = row[2].toInt();
+            int stock = row[3].toInt();
+            ProductItem* p = new ProductItem(pid, row[1], price, stock);
+            ui->producttreeWidget->addTopLevelItem(p);
+            productList.insert(pid, p);
+
+            emit productAdded(row[1]);
+        }
     }
     file.close( );
 }
@@ -159,7 +176,7 @@ void ProductManagerForm::on_addPushButton_clicked()
     }
 }
 
-void ProductManagerForm::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
+void ProductManagerForm::on_producttreeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column);
     ui->idLineEdit->setText(item->text(0));
@@ -185,3 +202,40 @@ void ProductManagerForm::on_deletePushButton_clicked()
     removeItem();
 }
 
+void ProductManagerForm::productIdListData(int index)
+{
+    ui->searchTreeWidget->clear();
+    QString PIdstr;
+    QList<QString> PIdList;
+
+    int sentpid;
+    QString sentpname;
+
+    for (const auto& v : productList) {
+        ProductItem* p = v;
+        sentpid = p->pid();
+        sentpname = p->getPName();
+
+        PIdstr = QString("%1, %2").arg(sentpid).arg(sentpname);
+        PIdList.append(PIdstr);
+    }
+
+    emit productDataListSent(PIdList);
+}
+
+void ProductManagerForm::productNameListData(QString pname)
+{
+    ui->searchTreeWidget->clear();
+
+    auto items = ui->producttreeWidget->findItems(pname,Qt::MatchCaseSensitive|Qt::MatchContains,1);
+
+    foreach(auto i, items) {
+        ProductItem* p = static_cast<ProductItem*>(i);
+        int pid = p->pid();
+        QString pname = p->getPName();
+        int price = p->getPrice();
+        int stock = p->getStock();
+        ProductItem* item = new ProductItem(pid, pname, price, stock);
+        emit productFindDataSent(item);
+    }
+}

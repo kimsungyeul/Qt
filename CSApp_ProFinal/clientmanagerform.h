@@ -24,13 +24,11 @@ public:
     void loadData();
 
 public slots:
-    void clientIdDataRecv(int,QTreeWidgetItem*);
-
     void clientIdListData(int);
+    void clientNameListData(QString);
 
 private slots:
     /* QTreeWidget을 위한 슬롯 */
-    void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
     void showContextMenu(const QPoint &);
     void removeItem();              /* QAction을 위한 슬롯 */
     void on_addPushButton_clicked();
@@ -40,12 +38,15 @@ private slots:
 
     void on_searchTreeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
+    void on_clienttreeWidget_itemClicked(QTreeWidgetItem *item, int column);
+
 signals:
-    void clientAdded(QString);
+    void clientAdded(int,QString);
 
-    void clientDataListSent(QString);
+    void clientDataListSent(QList<QString>);
+    void clientFindDataSent(ClientItem*);
 
-    void clientIdDataSent(ClientItem*,QTreeWidgetItem*);
+    //void clientDatatoServerSent(int, QString);
 private:
     int makeId();
 
