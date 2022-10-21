@@ -10,7 +10,6 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QDebug>
-#include <time.h>
 #include <QDateTime>
 #include <QMenu>
 #include <QScrollBar>
@@ -86,7 +85,7 @@ void ChatServer::clientConnect( )
 {
     QTcpSocket *clientConnection = chatServer->nextPendingConnection( );
     connect(clientConnection, SIGNAL(readyRead( )), SLOT(receiveData( )));
-    connect(clientConnection, SIGNAL(disconnected( )), SLOT(removeItem()));
+    connect(clientConnection, SIGNAL(disconnected( )), SLOT(removeClient()));
     qDebug("new connection is established...");
 }
 
@@ -117,8 +116,13 @@ void ChatServer::receiveData( )
             if(item->text(0) != "-") {
                 item->setText(0, "-");
                 clientList.append(clientConnection);        // QList<QTcpSocket*> clientList;
-                clientNameHash[port] = name;
-                clientIPHash[ip] = name;
+                clientSocketHash[name] = clientConnection;  // Login단에서 이름을 key값으로 client포트에 바인드된 소켓포트값 및 데이터 저장
+//                clientNameHash[port] = name;          // Login단에서 이름저장을(궂이?) 위 코드처럼 connection시 전체 tcp데이터 Hash코드로 변경
+//                clientIPHash[ip] = name;
+                qDebug()<<"1";
+                qDebug()<<ip << ", "<<sizeof(ip);
+                qDebug()<<"2";
+                qDebug()<<port<<", "<<sizeof(port);
             }
         }
         // Log check test code
@@ -161,11 +165,13 @@ void ChatServer::receiveData( )
             if(item->text(0) != "O") {
                 item->setText(0, "O");
             }
+            // Chat_In에 Hash저장시 강퇴후 해쉬삭제필요 and 초대시 봐야함
+            clientNameHash[port] = name;            // 채팅입장시 Name Hash포트에 포트에따른 이름저장
         }
         break;
     case Chat_Talk: {
         foreach(QTcpSocket *sock, clientList) {
-            if(sock != clientConnection){
+            if(clientNameHash.contains(sock->peerPort()) &&sock != clientConnection){   // clientList에 포함된 포트만 채팅되도록 설정
                 QByteArray sendArray;
                 sendArray.clear();
                 QDataStream out(&sendArray, QIODevice::WriteOnly);
@@ -190,9 +196,9 @@ void ChatServer::receiveData( )
 
         for(int i = 0; i < ui->messageTreeWidget->columnCount(); i++)
             ui->messageTreeWidget->resizeColumnToContents(i);
-        qDebug()<<"1";
+
         ui->messageTreeWidget->addTopLevelItem(logitem);
-        qDebug()<<"2";
+
         logThread->appendData(logitem);
     }
         break;
@@ -201,6 +207,7 @@ void ChatServer::receiveData( )
             if(item->text(0) != "-") {
                 item->setText(0, "-");
             }
+            clientNameHash.remove(port);
         }
         break;
     case Chat_LogOut:
@@ -208,8 +215,9 @@ void ChatServer::receiveData( )
             if(item->text(0) != "X") {
                 item->setText(0, "X");
                 clientList.removeOne(clientConnection);        // QList<QTcpSocket*> clientList;
-                clientNameHash.remove(port);
-                clientIPHash.remove(ip);
+                clientSocketHash.remove(name);             // LogOut시 서버에 접속된 소켓 Data 삭제
+//                clientNameHash.remove(port);
+//                clientIPHash.remove(ip);
             }
         }
         //        ui->inviteComboBox->addItem(name);
@@ -243,21 +251,24 @@ void ChatServer::addClient(int id, QString name)
 void ChatServer::kickOut()
 {
     QString name = ui->clientTreeWidget->currentItem()->text(1);
-    QString ip = clientIPHash.key(name);
-
+//    QString ip = clientIPHash.key(name);
+    QTcpSocket* sock = clientSocketHash[name];          // sockethash에 이름에맞는 socket 데이터를 sock에 저장
+    quint16 port = sock->peerPort();
 //    chatProtocolType data;
     QByteArray sendArray;
     QDataStream out(&sendArray, QIODevice::WriteOnly);
     out << Chat_KickOut;
     out.writeRawData("", 1020);
 
-    foreach(QTcpSocket* sock, clientList) {
-        if(sock->peerAddress().toString() == ip){
-//            sock->disconnectFromHost();
-            sock->write(sendArray);
-        }
-    }
+    sock->write(sendArray);                             // 아래코드처럼 궂이 안찾아도 바로 찾은 소켓에 쓰면됨
+//    foreach(QTcpSocket* sock, clientList) {
+//        if(sock->peerAddress().toString() == ip){
+////            sock->disconnectFromHost();
+//            sock->write(sendArray);
+//        }
+//    }
     ui->clientTreeWidget->currentItem()->setText(0, "-");
+    clientNameHash.remove(port);
 //    clientIDList.append(clientIDHash[name]);
 //    ui->inviteComboBox->addItem(name);
 }
@@ -266,26 +277,35 @@ void ChatServer::inviteClient()
 {
     if(ui->clientTreeWidget->topLevelItemCount()) {
         QString name = ui->clientTreeWidget->currentItem()->text(1);
-        quint16 port = clientNameHash.key(name, -1);
+        //quint16 port = clientNameHash.key(name, -1);      //포트비교를위해 선언하였으나 소켓Hash에서 이름검색후 바로 쓰면되므로 삭제
 
         //chatProtocolType data;
         QByteArray sendArray;
         QDataStream out(&sendArray, QIODevice::WriteOnly);
         out << Chat_Invite;
         out.writeRawData("", 1020);
-
-        foreach(QTcpSocket* sock, clientList) {
-            if(sock->peerPort() == port){
-                sock->write(sendArray);
-                foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1)) {
-                    if(item->text(0) != "O") {
-                        item->setText(0, "O");
-                        clientList.append(sock);        // QList<QTcpSocket*> clientList;
-//                        clientNameHash[ip] = name;
-                    }
-                }
+        QTcpSocket* sock = clientSocketHash[name];
+        quint16 port = sock->peerPort();
+        sock->write(sendArray);                 // iterator로 비교안해도 소켓에 바로쓰면됨
+        foreach (auto item, ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1)) {
+            if(item->text(0) != "O") {
+                item->setText(0, "O");
+//                clientList.append(sock);        // QList<QTcpSocket*> clientList;
             }
         }
+        clientNameHash[port] = name;
+//        foreach(QTcpSocket* sock, clientList) {
+//            if(sock->peerPort() == port){
+//                sock->write(sendArray);
+//                foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1)) {
+//                    if(item->text(0) != "O") {
+//                        item->setText(0, "O");
+//                        clientList.append(sock);        // QList<QTcpSocket*> clientList;
+////                        clientNameHash[ip] = name;
+//                    }
+//                }
+//            }
+//        }
     }
 }
 
@@ -320,12 +340,13 @@ void ChatServer::readClient()
         progressDialog->show();
 
         QString ip = receivedSocket->peerAddress().toString();
+        quint16 port = receivedSocket->peerPort();
 
         QTreeWidgetItem* item = new QTreeWidgetItem(ui->messageTreeWidget);
         item->setText(0, ip);
-        item->setText(1, QString::number(receivedSocket->peerPort()));
-        item->setText(2, QString::number(clientIDHash[clientIPHash[ip]]));
-        item->setText(3, clientIPHash[ip]);
+        item->setText(1, QString::number(port));
+        item->setText(2, QString::number(clientIDHash[clientNameHash[port]]));
+        item->setText(3, clientNameHash[port]);
         item->setText(4, filename);
         item->setText(5, QDateTime::currentDateTime().toString());
         item->setToolTip(4, filename);

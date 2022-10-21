@@ -79,3 +79,26 @@ void MainWindow::on_actionClient_triggered()
     }
 }
 
+
+void MainWindow::on_actionProduct_triggered()
+{
+    if(productForm != nullptr) {
+        productForm->setFocus();
+    }
+}
+
+
+void MainWindow::on_actionOrder_triggered()
+{
+    if(orderForm != nullptr) {
+        orderForm->setFocus();
+    }
+}
+
+void MainWindow::on_actionServer_triggered()
+{
+    if(chatserverForm != nullptr) {
+        chatserverForm->setFocus();
+    }
+}
+

@@ -68,7 +68,7 @@ private:
 //    QHash<QString, QString> clientNameHash;
 //    QHash<QString, int> clientIDHash;
     QHash<quint16, QString> clientNameHash;
-    QHash<QString, QString> clientIPHash;
+    QHash<QString, QTcpSocket*> clientSocketHash;
     QHash<QString, int> clientIDHash;
     QMenu* menu;
 
