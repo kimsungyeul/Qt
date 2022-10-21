@@ -108,62 +108,33 @@ void ChatServer::receiveData( )
     quint16 port = clientConnection->peerPort();
     QString name = QString::fromStdString(data);
 
+    auto finditem = ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1);
+
     qDebug() << ip << " : " << type;
 
     switch(type) {
-    case Chat_Login:
-        foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1)) {
-            if(item->text(0) != "-") {
-                item->setText(0, "-");
-                clientList.append(clientConnection);        // QList<QTcpSocket*> clientList;
-                clientSocketHash[name] = clientConnection;  // Login단에서 이름을 key값으로 client포트에 바인드된 소켓포트값 및 데이터 저장
-//                clientNameHash[port] = name;          // Login단에서 이름저장을(궂이?) 위 코드처럼 connection시 전체 tcp데이터 Hash코드로 변경
-//                clientIPHash[ip] = name;
-                qDebug()<<"1";
-                qDebug()<<ip << ", "<<sizeof(ip);
-                qDebug()<<"2";
-                qDebug()<<port<<", "<<sizeof(port);
-            }
+    case Chat_Login: {
+        if(finditem.count() == 0){
+            NonMemaddClient(name);
         }
-        // Log check test code
-//        auto finditem = ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1);
 
-//        if(finditem.count() == 0) {
-//            QString name = ui->clientTreeWidget->currentItem()->text(1);
-//            QString ip = clientNameHash.key(name);
-
-//            chatProtocolType data;
-//            data.type = Chat_LoginCheck;
-
-//            qstrcpy(data.data, "");
-//            QByteArray sendArray;
-//            QDataStream out(&sendArray, QIODevice::WriteOnly);
-//            out << data.type;
-//            out.writeRawData(data.data, 1020);
-//            QTcpSocket* sock;
-//            sock->write(sendArray);
-//            foreach(QTcpSocket* sock, clientList) {
-//                if(sock->peerAddress().toString() == ip){
-//        //            sock->disconnectFromHost();
-//                    sock->write(sendArray);
-//                }
-//            }
-//        } else {
-//            foreach(auto item, finditem) {
-//                if(item->text(0) != "O") {
-//                    item->setText(0, "O");
-//                    clientList.append(clientConnection);        // QList<QTcpSocket*> clientList;
-//                    clientNameHash[ip] = name;
-//                }
-//            }
-//        }
+        foreach(auto item, finditem) {
+            if(item->text(0) != "-" && item->text(0) != "-b") {
+                item->setText(0, "-");
+            }
+            clientList.append(clientConnection);        // QList<QTcpSocket*> clientList;
+            clientSocketHash[name] = clientConnection;  // Login단에서 이름을 key값으로 client포트에 바인드된 소켓포트값 및 데이터 저장
+        }
+    }
         break;
 //    case Chat_LoginCheck:
 
     case Chat_In:
-        foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1)) {
-            if(item->text(0) != "O") {
+        foreach(auto item, finditem) {
+            if(item->text(0) != "O" && item->text(0) != "-b") {
                 item->setText(0, "O");
+            } else {
+                item->setText(0, "Ob");
             }
             // Chat_In에 Hash저장시 강퇴후 해쉬삭제필요 and 초대시 봐야함
             clientNameHash[port] = name;            // 채팅입장시 Name Hash포트에 포트에따른 이름저장
@@ -171,7 +142,7 @@ void ChatServer::receiveData( )
         break;
     case Chat_Talk: {
         foreach(QTcpSocket *sock, clientList) {
-            if(clientNameHash.contains(sock->peerPort()) &&sock != clientConnection){   // clientList에 포함된 포트만 채팅되도록 설정
+            if(clientNameHash.contains(sock->peerPort()) && sock != clientConnection){   // clientList에 포함된 포트만 채팅되도록 설정
                 QByteArray sendArray;
                 sendArray.clear();
                 QDataStream out(&sendArray, QIODevice::WriteOnly);
@@ -202,24 +173,30 @@ void ChatServer::receiveData( )
         logThread->appendData(logitem);
     }
         break;
-    case Chat_Out:
-        foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchContains, 1)) {
-            if(item->text(0) != "-") {
+    case Chat_Out: {
+        foreach(auto item, finditem) {
+            if(item->text(0) != "-" && item->text(0) != "Ob") {
                 item->setText(0, "-");
+            } else {
+                item->setText(0, "-b");
             }
             clientNameHash.remove(port);
         }
+    }
         break;
     case Chat_LogOut:
-        foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchContains, 1)) {
-            if(item->text(0) != "X") {
+        foreach(auto item, finditem) {
+            if(item->text(0) != "X" && item->text(0) != "-b" && item->text(0) != "Ob") {
                 item->setText(0, "X");
+            } else {
+                ui->clientTreeWidget->takeTopLevelItem(ui->clientTreeWidget->indexOfTopLevelItem(item));
+                ui->clientTreeWidget->update();
+            }
                 clientList.removeOne(clientConnection);        // QList<QTcpSocket*> clientList;
                 clientSocketHash.remove(name);             // LogOut시 서버에 접속된 소켓 Data 삭제
-//                clientNameHash.remove(port);
-//                clientIPHash.remove(ip);
-            }
+
         }
+        qDebug("1");
         //        ui->inviteComboBox->addItem(name);
         break;
     }
@@ -230,11 +207,17 @@ void ChatServer::removeClient()
     QTcpSocket *clientConnection = dynamic_cast<QTcpSocket *>(sender( ));
     clientList.removeOne(clientConnection);
     clientConnection->deleteLater();
-
+    qDebug("2");
     QString name = clientNameHash[clientConnection->peerPort()];
-    foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchContains, 1)) {
-        item->setText(0, "X");
+    auto finditem = ui->clientTreeWidget->findItems(name, Qt::MatchContains, 1);
+    foreach(auto item, finditem) {
+        if (finditem.count() != 0) {
+            item->setText(0, "X");
+        }
     }
+
+    clientList.removeOne(clientConnection);
+    clientConnection->deleteLater();
 }
 
 void ChatServer::addClient(int id, QString name)
@@ -242,6 +225,28 @@ void ChatServer::addClient(int id, QString name)
     clientIDList << id;
     QTreeWidgetItem* item = new QTreeWidgetItem(ui->clientTreeWidget);
     item->setText(0, "X");
+    item->setText(1, name);
+    ui->clientTreeWidget->addTopLevelItem(item);
+    clientIDHash[name] = id;
+    ui->clientTreeWidget->resizeColumnToContents(0);
+}
+
+int ChatServer::makeNonId()
+{
+    if(clientIDList.size( ) == 0) {
+        return 2000;
+    } else {
+        auto id = clientIDList.back();
+        return ++id;
+    }
+}
+
+void ChatServer::NonMemaddClient(QString name)
+{
+    int id = makeNonId();
+    clientIDList << id;
+    QTreeWidgetItem* item = new QTreeWidgetItem(ui->clientTreeWidget);
+    item->setText(0, "-b");
     item->setText(1, name);
     ui->clientTreeWidget->addTopLevelItem(item);
     clientIDHash[name] = id;
@@ -267,7 +272,12 @@ void ChatServer::kickOut()
 //            sock->write(sendArray);
 //        }
 //    }
-    ui->clientTreeWidget->currentItem()->setText(0, "-");
+    if (ui->clientTreeWidget->currentItem()->text(0) == "O"){
+        ui->clientTreeWidget->currentItem()->setText(0, "-");
+    } else {
+        ui->clientTreeWidget->currentItem()->setText(0, "-b");
+    }
+
     clientNameHash.remove(port);
 //    clientIDList.append(clientIDHash[name]);
 //    ui->inviteComboBox->addItem(name);
@@ -287,10 +297,14 @@ void ChatServer::inviteClient()
         QTcpSocket* sock = clientSocketHash[name];
         quint16 port = sock->peerPort();
         sock->write(sendArray);                 // iterator로 비교안해도 소켓에 바로쓰면됨
-        foreach (auto item, ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1)) {
-            if(item->text(0) != "O") {
+
+        auto finditem = ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1);
+        foreach (auto item, finditem) {
+            if(item->text(0) != "O" && item->text(0) != "-b") {
                 item->setText(0, "O");
 //                clientList.append(sock);        // QList<QTcpSocket*> clientList;
+            } else {
+                item->setText(0, "Ob");
             }
         }
         clientNameHash[port] = name;
@@ -311,14 +325,19 @@ void ChatServer::inviteClient()
 
 void ChatServer::on_clientTreeWidget_customContextMenuRequested(const QPoint &pos)
 {
+    if(ui->clientTreeWidget->currentItem() == nullptr){
+        return;
+    }
+
     foreach(QAction *action, menu->actions()) {
-            if(action->objectName() == "Invite")
-                action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) != "O");
-            else
-                action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) == "O");
-        }
-        QPoint globalPos = ui->clientTreeWidget->mapToGlobal(pos);
-        menu->exec(globalPos);
+        if(action->objectName() == "Invite")
+            action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) != "O");
+        else
+            action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) == "O");
+    }
+    QPoint globalPos = ui->clientTreeWidget->mapToGlobal(pos);
+    menu->exec(globalPos);
+
 }
 
 void ChatServer::acceptConnection()

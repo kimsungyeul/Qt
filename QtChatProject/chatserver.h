@@ -49,6 +49,8 @@ private slots:
     void receiveData( );
     void removeClient( );
     void addClient(int, QString);
+    int makeNonId();
+    void NonMemaddClient(QString);
     void inviteClient();
     void kickOut();
     void on_clientTreeWidget_customContextMenuRequested(const QPoint &pos);
