@@ -69,7 +69,7 @@ ClientManagerForm::~ClientManagerForm()
 int ClientManagerForm::makeId( )
 {
     if(clientList.size( ) == 0) {
-        return 0;
+        return 1000;
     } else {
         auto id = clientList.lastKey();
         return ++id;

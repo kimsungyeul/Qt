@@ -28,8 +28,10 @@ public:
     void loadData();
 
 public slots:
+
     void clientDataListRecv(QList<QString>);
     void clientFindDataRecv(ClientItem*);
+
     void productDataListRecv(QList<QString>);
     void productFindDataRecv(ProductItem*);
 
@@ -49,15 +51,18 @@ private slots:
 
     void on_producttreeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
 
-    void on_totalpriceLineEdit_returnPressed();
-
     void on_addpushButton_clicked();
+
+    void on_amountspinBox_valueChanged(int arg1);
+
+    void on_ordertreeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
 signals:
     void orderAdded(QString);
 
     void clientDataSent(int);
     void clientDataSent(QString);
+
     void productDataSent(int);
     void productDataSent(QString);
 

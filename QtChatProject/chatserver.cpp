@@ -234,7 +234,7 @@ void ChatServer::addClient(int id, QString name)
 int ChatServer::makeNonId()
 {
     if(clientIDList.size( ) == 0) {
-        return 2000;
+        return 10000;
     } else {
         auto id = clientIDList.back();
         return ++id;

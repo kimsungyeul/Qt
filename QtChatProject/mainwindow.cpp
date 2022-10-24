@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     clientForm->loadData();
     productForm->loadData();
+    orderForm->loadData();
 }
 
 MainWindow::~MainWindow()

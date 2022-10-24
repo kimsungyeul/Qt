@@ -6,12 +6,16 @@
 class OrderItem : public QTreeWidgetItem
 {
 public:
-    explicit OrderItem(int oid = 0, int cid = 0, int pid = 0,
-                       int amount = 0, int totprice = 0, QString = "");
+    explicit OrderItem(int oid = 0, int cid = 0, QString = "", int pid = 0,
+                       QString = "", int amount = 0, int totprice = 0, QString = "");
     int getcid() const;
     void setcid(int);
+    QString getcname() const;
+    void setcname(QString&);
     int getpid() const;
     void setpid(int);
+    QString getpname() const;
+    void setpname(QString&);
     int getAmount() const;
     void setAmount(int);
     int getTotPrice() const;

@@ -4,7 +4,8 @@
 
 #include <QFile>
 #include <QMenu>
-#include <QTime>
+#include <QDateTime>
+#include <QMessageBox>
 
 OrderManagerForm::OrderManagerForm(QWidget *parent) :
     QWidget(parent),
@@ -23,7 +24,10 @@ OrderManagerForm::OrderManagerForm(QWidget *parent) :
     menu->addAction(removeAction);
     ui->ordertreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->ordertreeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+}
 
+void OrderManagerForm::loadData()
+{
     QFile file("orderlist.txt");
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
@@ -35,15 +39,28 @@ OrderManagerForm::OrderManagerForm(QWidget *parent) :
         if(row.size()) {
             int oid = row[0].toInt();
             int cid = row[1].toInt();
-            int pid = row[2].toInt();
-            int amount = row[3].toInt();
-            int totprice = row[4].toInt();
+            QString cname = row[2];
+            int pid = row[3].toInt();
+            QString pname = row[4];
+            int amount = row[5].toInt();
+            int totprice = row[6].toInt();
+            QString date = row[7];
 
-            OrderItem* o = new OrderItem(oid, cid, pid, amount, totprice, row[5]);
-            ui->ordertreeWidget->addTopLevelItem(o);
+            OrderItem* o = new OrderItem(oid, cid, cname, pid, pname, amount, totprice, date);
+            //ui->ordertreeWidget->addTopLevelItem(o);
             orderList.insert(oid, o);
 
-            //emit orderAdded(row[1]);
+            QTreeWidgetItem* orderitem = new QTreeWidgetItem(ui->ordertreeWidget);
+            QString CNameIdstr, PNameIdstr;
+            CNameIdstr = QString("%1(%2)").arg(cname).arg(cid);
+            PNameIdstr = QString("%1(%2)").arg(pname).arg(pid);
+
+            orderitem->setText(0,QString::number(oid));
+            orderitem->setText(1, CNameIdstr);
+            orderitem->setText(2, PNameIdstr);
+            orderitem->setText(3,QString::number(amount));
+            orderitem->setText(4,QString::number(totprice));
+            orderitem->setText(5,date);
         }
     }
     file.close( );
@@ -60,9 +77,9 @@ OrderManagerForm::~OrderManagerForm()
     QTextStream out(&file);
     for (const auto& v : orderList) {
         OrderItem* o = v;
-        out << o->oid() << ", " << o->getcid() << ", ";
-        out << o->getpid() << ", ";
-        out << o-> getAmount()<< ", ";
+        out << o->oid() << ", " << o->getcid() << ", " ;
+        out << o->getcname() << ", " << o->getpid() << ", ";
+        out << o->getpname() << ", " << o-> getAmount()<< ", ";
         out << o->getTotPrice() << ", ";
         out << o->getDate() << "\n";
     }
@@ -74,8 +91,8 @@ int OrderManagerForm::makeOId( )
     if(orderList.size( ) == 0) {
         return 5000;
     } else {
-        auto id = orderList.lastKey();
-        return ++id;
+        auto oid = orderList.lastKey();
+        return ++oid;
     }
 }
 
@@ -211,54 +228,93 @@ void OrderManagerForm::on_producttreeWidget_itemDoubleClicked(QTreeWidgetItem *i
     QString NameIdstr;
     int pid = item->text(0).toInt();
     QString pname = item->text(1);
+    int stock = item->text(3).toInt();
     NameIdstr = QString("%1(%2)").arg(pname).arg(pid);
 
     if(p != nullptr) {
         ui->pnameLineEdit->setText(NameIdstr);
         ui->priceLineEdit->setText(item->text(2));
         ui->stockLineEdit->setText(item->text(3));
+        ui->amountspinBox->setMaximum(stock);
     }
 }
-
-
-void OrderManagerForm::on_totalpriceLineEdit_returnPressed()
-{
-    int price = ui->priceLineEdit->text().toInt();
-    int Totprice = ui->amountspinBox->text().toInt() * price;
-
-    ui->totalpriceLineEdit->setText(QString::number(Totprice));
-}
-
 
 void OrderManagerForm::on_addpushButton_clicked()
 {
     QTreeWidgetItem* row = new QTreeWidgetItem(ui->ordertreeWidget);
-
+    QString citemname = ui->nameLineEdit->text();
+    QString pitemname = ui->pnameLineEdit->text();
     // Order Number
     int oid = makeOId();
 
     // Date
-    QString date = QTime::currentTime().toString();
+    QString date = QDateTime::currentDateTime().toString();
 
     QList<QString> clientrow = ui->nameLineEdit->text().split("(");
     QList<QString> productrow = ui->pnameLineEdit->text().split("(");
     clientrow[1] = clientrow[1].remove(QChar(')'), Qt::CaseInsensitive);
     productrow[1] = productrow[1].remove(QChar(')'), Qt::CaseInsensitive);
-    qDebug()<<clientrow[0] << ", " << clientrow[1];
-
     // Client Name, Item Name
     int cid = clientrow[1].toInt();
+    QString cname = clientrow[0];
     int pid = productrow[1].toInt();
+    QString pname = productrow[0];
     int amount = ui->amountspinBox->text().toInt();
     int totprice = ui->totalpriceLineEdit->text().toInt();
-    OrderItem* orderitem = new OrderItem(oid,cid,pid,amount,totprice,date);
-    orderList.insert(oid,orderitem);
+    if((citemname.isNull() != true) && (pitemname.isNull() != true)) {
+        OrderItem* orderitem = new OrderItem(oid, cid, cname, pid, pname, amount,totprice,date);
+        orderList.insert(oid, orderitem);
 
-    row->setText(0,QString::number(oid));
-    row->setText(1,ui->nameLineEdit->text());
-    row->setText(2,ui->pnameLineEdit->text());
-    row->setText(3,QString::number(amount));
-    row->setText(4,QString::number(totprice));
-    row->setText(5,date);
+        row->setText(0,QString::number(oid));
+        row->setText(1,ui->nameLineEdit->text());
+        row->setText(2,ui->pnameLineEdit->text());
+        row->setText(3,QString::number(amount));
+        row->setText(4,QString::number(totprice));
+        row->setText(5,date);
+    } else {
+        QMessageBox::critical(this, tr("Invalid Order"), \
+                              tr("PlZ Client or Product input"));
+    }
+}
+
+
+void OrderManagerForm::on_amountspinBox_valueChanged(int arg1)
+{
+    ui->totalpriceLineEdit->setText(QString::number(arg1 * ui->priceLineEdit->text().toInt()));
+}
+
+
+void OrderManagerForm::on_ordertreeWidget_itemClicked(QTreeWidgetItem *item, int column)
+{
+    Q_UNUSED(column);
+
+    QTreeWidgetItem* row = new QTreeWidgetItem(ui->ordertreeWidget);
+    //QList<QString> clientrow = ui->clienttreeWidget->currentItem()->text(1).split("(");
+    //QList<QString> productrow = ui->producttreeWidget->currentItem()->text(2).split("(");
+//    clientrow[1] = clientrow[1].remove(QChar(')'), Qt::CaseInsensitive);
+//    productrow[1] = productrow[1].remove(QChar(')'), Qt::CaseInsensitive);
+    QString::SectionFlag flag = QString::SectionSkipEmpty;
+    QString clientpath = item->text(1);
+    QString clientname = clientpath.section('(',0,0,flag);
+    QString productpath = item->text(2);
+    QString productname = clientpath.section('(',0,0,flag);
+
+    ui->clientcomboBox->set(1);
+    ui->productcomboBox->setCurrentIndex(1);
+    auto cname = ui->clientInfocomboBox->findText(clientname);
+    auto pname = ui->productInfocomboBox->findText(productname);
+    int price = (item->text(4).toInt())/(item->text(3).toInt());
+
+    qDebug() << cname << ", " << pname;
+    ui->oidLineEdit->setText(item->text(0));
+    ui->clientcomboBox->setCurrentIndex(cname);
+    ui->productcomboBox->setCurrentIndex(pname);
+    ui->priceLineEdit->setText(QString::number(price));
+    ui->amountspinBox->setValue(item->text(3).toInt());
+    ui->totalpriceLineEdit->setText(item->text(4));
+    qDebug()<< clientname << ", " << productname;
+
+//    emit clientDataSent(clientname);
+//    emit productDataSent(productname);
 }
 

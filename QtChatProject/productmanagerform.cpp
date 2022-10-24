@@ -72,7 +72,7 @@ void ProductManagerForm::loadData()
 int ProductManagerForm::makePId( )
 {
     if(productList.size( ) == 0) {
-        return 0;
+        return 8000;
     } else {
         auto id = productList.lastKey();
         return ++id;
