@@ -31,9 +31,11 @@ public slots:
 
     void clientDataListRecv(QList<QString>);
     void clientFindDataRecv(ClientItem*);
+    void getClientIdDataRecv(ClientItem*);
 
     void productDataListRecv(QList<QString>);
     void productFindDataRecv(ProductItem*);
+    void getProductIdDataRecv(ProductItem*);
 
 private slots:
     void showContextMenu(const QPoint &);
@@ -57,14 +59,21 @@ private slots:
 
     void on_ordertreeWidget_itemClicked(QTreeWidgetItem *item, int column);
 
+    void on_deletepushButton_clicked();
+
+    void on_modifypushButton_clicked();
+
 signals:
     void orderAdded(QString);
 
     void clientDataSent(int);
     void clientDataSent(QString);
+    void getClientItemSent(int);
 
     void productDataSent(int);
     void productDataSent(QString);
+    void getProductItemSent(int);
+    void stockUpdate(int,int);
 
 private:
     int makeOId();

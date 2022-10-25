@@ -218,3 +218,17 @@ void ProductManagerForm::productNameListData(QString pname)
         emit productFindDataSent(item);
     }
 }
+
+void ProductManagerForm::productItemRecv(int pid)
+{
+    ProductItem* productData = productList[pid];
+
+    emit productIdDataSent(productData);
+}
+
+void ProductManagerForm::productStockUp(int pid,int amount)
+{
+    ProductItem* productData = productList[pid];
+    int updateStock = productData->getStock() - amount;
+    productData->setStock(updateStock);
+}

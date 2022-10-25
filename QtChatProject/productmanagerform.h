@@ -25,6 +25,8 @@ public:
 public slots:
     void productIdListData(int);
     void productNameListData(QString);
+    void productItemRecv(int);
+    void productStockUp(int,int);
 
 private slots:
     void showContextMenu(const QPoint &);
@@ -46,6 +48,8 @@ signals:
     void productAdded(QString);
     void productDataListSent(QList<QString>);
     void productFindDataSent(ProductItem*);
+    void productIdDataSent(ProductItem*);
+
 private:
     int makePId();
 

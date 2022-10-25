@@ -26,6 +26,7 @@ public:
 public slots:
     void clientIdListData(int);
     void clientNameListData(QString);
+    void clientItemRecv(int);
 
 private slots:
     /* QTreeWidget을 위한 슬롯 */
@@ -45,7 +46,7 @@ signals:
 
     void clientDataListSent(QList<QString>);
     void clientFindDataSent(ClientItem*);
-
+    void clientIdDataSent(ClientItem*);
     //void clientDatatoServerSent(int, QString);
 private:
     int makeId();

@@ -125,10 +125,13 @@
               </sizepolicy>
              </property>
              <property name="currentText">
-              <string>--Product Select--</string>
+              <string/>
              </property>
              <property name="placeholderText">
               <string extracomment="Product Select"/>
+             </property>
+             <property name="modelColumn">
+              <number>0</number>
              </property>
              <item>
               <property name="text">

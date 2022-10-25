@@ -50,6 +50,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(clientForm, SIGNAL(clientFindDataSent(ClientItem*)), orderForm, SLOT(clientFindDataRecv(ClientItem*)));
     connect(orderForm, SIGNAL(clientDataSent(QString)), clientForm, SLOT(clientNameListData(QString)));
 
+    connect(orderForm, SIGNAL(getClientItemSent(int)), clientForm, SLOT(clientItemRecv(int)));
+    connect(clientForm, SIGNAL(clientIdDataSent(ClientItem*)), orderForm, SLOT(getClientIdDataRecv(ClientItem*)));
 
     //ProductManagerForm에서 검색한 리스트를 OrderManagerForm으로 전달
     connect(productForm, SIGNAL(productDataListSent(QList<QString>)), orderForm, SLOT(productDataListRecv(QList<QString>)));
@@ -59,6 +61,11 @@ MainWindow::MainWindow(QWidget *parent)
     //OrderManagerForm에서 선택된 리스트를 ProductManagerForm에 요청해 매칭된데이터 받기위한 connect
     connect(productForm, SIGNAL(productFindDataSent(ProductItem*)), orderForm, SLOT(productFindDataRecv(ProductItem*)));
     connect(orderForm, SIGNAL(productDataSent(QString)), productForm, SLOT(productNameListData(QString)));
+
+    connect(orderForm, SIGNAL(getProductItemSent(int)), productForm, SLOT(productItemRecv(int)));
+    connect(productForm, SIGNAL(productIdDataSent(ProductItem*)), orderForm, SLOT(getProductIdDataRecv(ProductItem*)));
+
+    connect(orderForm, SIGNAL(stockUpdate(int,int)), productForm, SLOT(productStockUp(int,int)));
 
     //ClientManager에서 리스트를 읽어올때 ChatServerForm의 ClientWidget에도 출력되기 위한 connect
     connect(clientForm, SIGNAL(clientAdded(int, QString)), chatserverForm, SLOT(addClient(int, QString)));

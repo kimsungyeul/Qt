@@ -67,6 +67,7 @@ private:
 
     QList<QTcpSocket*> clientList;
     QList<int> clientIDList;
+    QAction* inviteAction;
 //    QHash<QString, QString> clientNameHash;
 //    QHash<QString, int> clientIDHash;
     QHash<quint16, QString> clientNameHash;

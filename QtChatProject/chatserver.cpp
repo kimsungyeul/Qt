@@ -50,8 +50,7 @@ ChatServer::ChatServer(QWidget *parent) :
 
     qDebug("Start listening ...");
 
-    QAction* inviteAction = new QAction(tr("&Invite"));
-    inviteAction->setObjectName("Invite");
+    inviteAction = new QAction(tr("&Invite"));
     connect(inviteAction, SIGNAL(triggered()), SLOT(inviteClient()));
 
     QAction* removeAction = new QAction(tr("&Kick out"));
@@ -326,18 +325,25 @@ void ChatServer::inviteClient()
 void ChatServer::on_clientTreeWidget_customContextMenuRequested(const QPoint &pos)
 {
     if(ui->clientTreeWidget->currentItem() == nullptr){
+        inviteAction->setEnabled(false);
         return;
     }
 
-    foreach(QAction *action, menu->actions()) {
-        if(action->objectName() == "Invite")
-            action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) != "O");
-        else
-            action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) == "O");
-    }
-    QPoint globalPos = ui->clientTreeWidget->mapToGlobal(pos);
-    menu->exec(globalPos);
+    if(ui->clientTreeWidget->is){
+        inviteAction->setEnabled(true);
+        inviteAction->setObjectName("Invite");
 
+        foreach(QAction *action, menu->actions()) {
+            if(action->objectName() == "Invite")
+                action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) != "O");
+            else
+                action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) == "O");
+        }
+        QPoint globalPos = ui->clientTreeWidget->mapToGlobal(pos);
+        menu->exec(globalPos);
+    } else {
+        inviteAction->setObjectName("");
+    }
 }
 
 void ChatServer::acceptConnection()

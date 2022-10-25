@@ -210,4 +210,9 @@ void ClientManagerForm::clientNameListData(QString name)
     }
 }
 
+void ClientManagerForm::clientItemRecv(int id)
+{
+    ClientItem* clientData = clientList[id];
+    emit clientIdDataSent(clientData);
+}
 

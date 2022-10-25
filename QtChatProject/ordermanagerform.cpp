@@ -245,23 +245,21 @@ void OrderManagerForm::on_addpushButton_clicked()
     QString citemname = ui->nameLineEdit->text();
     QString pitemname = ui->pnameLineEdit->text();
     // Order Number
-    int oid = makeOId();
-
-    // Date
-    QString date = QDateTime::currentDateTime().toString();
-
-    QList<QString> clientrow = ui->nameLineEdit->text().split("(");
-    QList<QString> productrow = ui->pnameLineEdit->text().split("(");
-    clientrow[1] = clientrow[1].remove(QChar(')'), Qt::CaseInsensitive);
-    productrow[1] = productrow[1].remove(QChar(')'), Qt::CaseInsensitive);
-    // Client Name, Item Name
-    int cid = clientrow[1].toInt();
-    QString cname = clientrow[0];
-    int pid = productrow[1].toInt();
-    QString pname = productrow[0];
-    int amount = ui->amountspinBox->text().toInt();
-    int totprice = ui->totalpriceLineEdit->text().toInt();
-    if((citemname.isNull() != true) && (pitemname.isNull() != true)) {
+    if((citemname.isEmpty() != true) && (pitemname.isEmpty() != true)) {
+        int oid = makeOId();
+        QList<QString> clientrow = ui->nameLineEdit->text().split("(");
+        QList<QString> productrow = ui->pnameLineEdit->text().split("(");
+        clientrow[1] = clientrow[1].remove(QChar(')'), Qt::CaseInsensitive);
+        productrow[1] = productrow[1].remove(QChar(')'), Qt::CaseInsensitive);
+        // Client Name, Item Name
+        int cid = clientrow[1].toInt();
+        QString cname = clientrow[0];
+        int pid = productrow[1].toInt();
+        QString pname = productrow[0];
+        int amount = ui->amountspinBox->text().toInt();
+        int totprice = ui->totalpriceLineEdit->text().toInt();
+        // Date
+        QString date = QDateTime::currentDateTime().toString();
         OrderItem* orderitem = new OrderItem(oid, cid, cname, pid, pname, amount,totprice,date);
         orderList.insert(oid, orderitem);
 
@@ -271,6 +269,8 @@ void OrderManagerForm::on_addpushButton_clicked()
         row->setText(3,QString::number(amount));
         row->setText(4,QString::number(totprice));
         row->setText(5,date);
+
+        emit stockUpdate(pid,amount);
     } else {
         QMessageBox::critical(this, tr("Invalid Order"), \
                               tr("PlZ Client or Product input"));
@@ -283,38 +283,74 @@ void OrderManagerForm::on_amountspinBox_valueChanged(int arg1)
     ui->totalpriceLineEdit->setText(QString::number(arg1 * ui->priceLineEdit->text().toInt()));
 }
 
+void OrderManagerForm::getClientIdDataRecv(ClientItem* item)
+{
+    ui->clienttreeWidget->clear();
+
+    //ui->clienttreeWidget->addTopLevelItem(item);
+}
+
+void OrderManagerForm::getProductIdDataRecv(ProductItem* item)
+{
+    ui->producttreeWidget->clear();
+
+    //ui->producttreeWidget->addTopLevelItem(item);
+    QString maxstock = item->text(3);
+    ui->priceLineEdit->setText(item->text(2));
+    ui->amountspinBox->setMaximum(maxstock.toInt());
+    ui->stockLineEdit->setText(maxstock);
+}
 
 void OrderManagerForm::on_ordertreeWidget_itemClicked(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column);
 
-    QTreeWidgetItem* row = new QTreeWidgetItem(ui->ordertreeWidget);
-    //QList<QString> clientrow = ui->clienttreeWidget->currentItem()->text(1).split("(");
-    //QList<QString> productrow = ui->producttreeWidget->currentItem()->text(2).split("(");
-//    clientrow[1] = clientrow[1].remove(QChar(')'), Qt::CaseInsensitive);
-//    productrow[1] = productrow[1].remove(QChar(')'), Qt::CaseInsensitive);
-    QString::SectionFlag flag = QString::SectionSkipEmpty;
-    QString clientpath = item->text(1);
-    QString clientname = clientpath.section('(',0,0,flag);
-    QString productpath = item->text(2);
-    QString productname = clientpath.section('(',0,0,flag);
+    QList<QString> clientrow = item->text(1).split("(");
+    QList<QString> productrow = item->text(2).split("(");
+    int clientID = clientrow[1].remove(QChar(')'), Qt::CaseInsensitive).toInt();
+    int productID = productrow[1].remove(QChar(')'), Qt::CaseInsensitive).toInt();
 
-    ui->clientcomboBox->set(1);
-    ui->productcomboBox->setCurrentIndex(1);
-    auto cname = ui->clientInfocomboBox->findText(clientname);
-    auto pname = ui->productInfocomboBox->findText(productname);
-    int price = (item->text(4).toInt())/(item->text(3).toInt());
-
-    qDebug() << cname << ", " << pname;
-    ui->oidLineEdit->setText(item->text(0));
-    ui->clientcomboBox->setCurrentIndex(cname);
-    ui->productcomboBox->setCurrentIndex(pname);
-    ui->priceLineEdit->setText(QString::number(price));
-    ui->amountspinBox->setValue(item->text(3).toInt());
+    //emit getClientItemSent(clientID);
+    emit getProductItemSent(productID);
+    //ui->oidLineEdit->setText(item->text(0));
+    ui->nameLineEdit->setText(item->text(1));
+    ui->pnameLineEdit->setText(item->text(2));
     ui->totalpriceLineEdit->setText(item->text(4));
-    qDebug()<< clientname << ", " << productname;
+}
 
-//    emit clientDataSent(clientname);
-//    emit productDataSent(productname);
+
+void OrderManagerForm::on_deletepushButton_clicked()
+{
+    removeItem();
+}
+
+
+void OrderManagerForm::on_modifypushButton_clicked()
+{
+    QTreeWidgetItem* item = ui->ordertreeWidget->currentItem();
+    if(item != nullptr) {
+        int key = item->text(0).toInt();
+        OrderItem* o = orderList[key];
+
+        int befamount, afamount, totalPrice;
+        QString cname,pname;
+ //유나코드 해야함
+//        cid = clientIDList[ui->clientComboBox->currentIndex()];
+//        pid = productIDList[ui->productComboBox->currentIndex()];
+        QList<QString> productrow = ui->pnameLineEdit->text().split("(");
+        productrow[1] = productrow[1].remove(QChar(')'), Qt::CaseInsensitive);
+        int pid = productrow[1].toInt();
+
+        befamount = item->text(3).toInt();
+        afamount = ui->amountspinBox->value();
+        totalPrice = ui->totalpriceLineEdit->text().toInt();
+
+        item->setText(3,QString::number(afamount));
+        item->setText(4,QString::number(totalPrice));
+        o->setAmount(afamount);
+        o->setTotPrice(totalPrice);
+        orderList[key] = o;
+        emit stockUpdate(pid,afamount-befamount);
+    }
 }
 
