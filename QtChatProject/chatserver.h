@@ -58,6 +58,8 @@ private slots:
     void acceptConnection();                    /* 파일 서버 */
     void readClient();
 
+    void on_chatTreeWidget_customContextMenuRequested(const QPoint &pos);
+
 private:
     const int BLOCK_SIZE = 1024;
     const int PORT_NUMBER = 8000;

@@ -51,6 +51,7 @@ ChatServer::ChatServer(QWidget *parent) :
     qDebug("Start listening ...");
 
     inviteAction = new QAction(tr("&Invite"));
+    inviteAction->setObjectName("Invite");
     connect(inviteAction, SIGNAL(triggered()), SLOT(inviteClient()));
 
     QAction* removeAction = new QAction(tr("&Kick out"));
@@ -60,6 +61,7 @@ ChatServer::ChatServer(QWidget *parent) :
     menu->addAction(inviteAction);
     menu->addAction(removeAction);
     ui->clientTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->chatTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 
     progressDialog = new QProgressDialog(0);
     progressDialog->setAutoClose(true);
@@ -108,7 +110,8 @@ void ChatServer::receiveData( )
     QString name = QString::fromStdString(data);
 
     auto finditem = ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1);
-
+    auto findchatitem = ui->chatTreeWidget->findItems(name, Qt::MatchFixedString, 1);
+    QTreeWidgetItem* saveitem;
     qDebug() << ip << " : " << type;
 
     switch(type) {
@@ -128,16 +131,22 @@ void ChatServer::receiveData( )
         break;
 //    case Chat_LoginCheck:
 
-    case Chat_In:
+    case Chat_In: {
         foreach(auto item, finditem) {
             if(item->text(0) != "O" && item->text(0) != "-b") {
                 item->setText(0, "O");
             } else {
                 item->setText(0, "Ob");
             }
+            saveitem = item->clone();
             // Chat_In에 Hash저장시 강퇴후 해쉬삭제필요 and 초대시 봐야함
             clientNameHash[port] = name;            // 채팅입장시 Name Hash포트에 포트에따른 이름저장
+            ui->clientTreeWidget->takeTopLevelItem(ui->clientTreeWidget->indexOfTopLevelItem(item));
+            ui->clientTreeWidget->update();
         }
+        ui->chatTreeWidget->addTopLevelItem(saveitem);
+        ui->chatTreeWidget->resizeColumnToContents(0);
+    }
         break;
     case Chat_Talk: {
         foreach(QTcpSocket *sock, clientList) {
@@ -173,30 +182,50 @@ void ChatServer::receiveData( )
     }
         break;
     case Chat_Out: {
-        foreach(auto item, finditem) {
+        foreach(auto item, findchatitem) {
             if(item->text(0) != "-" && item->text(0) != "Ob") {
                 item->setText(0, "-");
             } else {
                 item->setText(0, "-b");
             }
+            saveitem = item->clone();
             clientNameHash.remove(port);
+            ui->chatTreeWidget->takeTopLevelItem(ui->chatTreeWidget->indexOfTopLevelItem(item));
+            ui->chatTreeWidget->update();
         }
+        ui->clientTreeWidget->addTopLevelItem(saveitem);
+        ui->clientTreeWidget->resizeColumnToContents(0);
     }
         break;
     case Chat_LogOut:
-        foreach(auto item, finditem) {
-            if(item->text(0) != "X" && item->text(0) != "-b" && item->text(0) != "Ob") {
-                item->setText(0, "X");
-            } else {
-                ui->clientTreeWidget->takeTopLevelItem(ui->clientTreeWidget->indexOfTopLevelItem(item));
-                ui->clientTreeWidget->update();
-            }
+        if (finditem.count() != 0) {
+            foreach(auto item, finditem) {
+                if(item->text(0) != "X" && item->text(0) != "-b" && item->text(0) != "Ob") {
+                    item->setText(0, "X");
+                } else {
+                    ui->clientTreeWidget->takeTopLevelItem(ui->clientTreeWidget->indexOfTopLevelItem(item));
+                    ui->clientTreeWidget->update();
+                }
                 clientList.removeOne(clientConnection);        // QList<QTcpSocket*> clientList;
                 clientSocketHash.remove(name);             // LogOut시 서버에 접속된 소켓 Data 삭제
-
+            }
+        } else {
+            foreach(auto item, findchatitem) {
+                saveitem = item->clone();
+                if(item->text(0) != "X" && item->text(0) != "-b" && item->text(0) != "Ob") {
+                    item->setText(0, "X");
+                    saveitem = item->clone();
+                    ui->chatTreeWidget->takeTopLevelItem(ui->chatTreeWidget->indexOfTopLevelItem(item));
+                    ui->chatTreeWidget->update();
+                    ui->clientTreeWidget->addTopLevelItem(saveitem);
+                } else {
+                    ui->chatTreeWidget->takeTopLevelItem(ui->chatTreeWidget->indexOfTopLevelItem(item));
+                    ui->chatTreeWidget->update();
+                }
+                clientList.removeOne(clientConnection);        // QList<QTcpSocket*> clientList;
+                clientSocketHash.remove(name);             // LogOut시 서버에 접속된 소켓 Data 삭제
+            }
         }
-        qDebug("1");
-        //        ui->inviteComboBox->addItem(name);
         break;
     }
 }
@@ -206,7 +235,6 @@ void ChatServer::removeClient()
     QTcpSocket *clientConnection = dynamic_cast<QTcpSocket *>(sender( ));
     clientList.removeOne(clientConnection);
     clientConnection->deleteLater();
-    qDebug("2");
     QString name = clientNameHash[clientConnection->peerPort()];
     auto finditem = ui->clientTreeWidget->findItems(name, Qt::MatchContains, 1);
     foreach(auto item, finditem) {
@@ -254,36 +282,46 @@ void ChatServer::NonMemaddClient(QString name)
 
 void ChatServer::kickOut()
 {
-    QString name = ui->clientTreeWidget->currentItem()->text(1);
-//    QString ip = clientIPHash.key(name);
-    QTcpSocket* sock = clientSocketHash[name];          // sockethash에 이름에맞는 socket 데이터를 sock에 저장
-    quint16 port = sock->peerPort();
-//    chatProtocolType data;
-    QByteArray sendArray;
-    QDataStream out(&sendArray, QIODevice::WriteOnly);
-    out << Chat_KickOut;
-    out.writeRawData("", 1020);
-
-    sock->write(sendArray);                             // 아래코드처럼 궂이 안찾아도 바로 찾은 소켓에 쓰면됨
-//    foreach(QTcpSocket* sock, clientList) {
-//        if(sock->peerAddress().toString() == ip){
-////            sock->disconnectFromHost();
-//            sock->write(sendArray);
-//        }
-//    }
-    if (ui->clientTreeWidget->currentItem()->text(0) == "O"){
-        ui->clientTreeWidget->currentItem()->setText(0, "-");
-    } else {
-        ui->clientTreeWidget->currentItem()->setText(0, "-b");
+    if(ui->clientTreeWidget->currentItem() == nullptr) {
+        return;
     }
 
-    clientNameHash.remove(port);
-//    clientIDList.append(clientIDHash[name]);
-//    ui->inviteComboBox->addItem(name);
+    if(ui->chatTreeWidget->topLevelItemCount()) {
+        QString name = ui->chatTreeWidget->currentItem()->text(1);
+        QTcpSocket* sock = clientSocketHash[name];          // sockethash에 이름에맞는 socket 데이터를 sock에 저장
+        quint16 port = sock->peerPort();
+        QByteArray sendArray;
+        QDataStream out(&sendArray, QIODevice::WriteOnly);
+        out << Chat_KickOut;
+        out.writeRawData("", 1020);
+
+        sock->write(sendArray);                             // 아래코드처럼 궂이 안찾아도 바로 찾은 소켓에 쓰면됨
+
+        auto findchatitem = ui->chatTreeWidget->findItems(name, Qt::MatchFixedString, 1);
+        QTreeWidgetItem* saveitem;
+        foreach (auto item, findchatitem) {
+            if(item->text(0) != "-" && item->text(0) != "Ob") {
+                item->setText(0, "-");
+            } else {
+                item->setText(0, "-b");
+            }
+            saveitem = item->clone();
+            clientNameHash.remove(port);
+            ui->chatTreeWidget->takeTopLevelItem(ui->chatTreeWidget->indexOfTopLevelItem(item));
+            ui->chatTreeWidget->update();
+        }
+        ui->clientTreeWidget->addTopLevelItem(saveitem);
+        ui->clientTreeWidget->resizeColumnToContents(0);
+    }
 }
 
 void ChatServer::inviteClient()
 {
+    if(ui->clientTreeWidget->currentItem() == nullptr ||
+            ui->clientTreeWidget->currentItem()->text(0) == "X") {
+        return;
+    }
+
     if(ui->clientTreeWidget->topLevelItemCount()) {
         QString name = ui->clientTreeWidget->currentItem()->text(1);
         //quint16 port = clientNameHash.key(name, -1);      //포트비교를위해 선언하였으나 소켓Hash에서 이름검색후 바로 쓰면되므로 삭제
@@ -298,52 +336,55 @@ void ChatServer::inviteClient()
         sock->write(sendArray);                 // iterator로 비교안해도 소켓에 바로쓰면됨
 
         auto finditem = ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1);
+        QTreeWidgetItem* saveitem;
         foreach (auto item, finditem) {
             if(item->text(0) != "O" && item->text(0) != "-b") {
                 item->setText(0, "O");
-//                clientList.append(sock);        // QList<QTcpSocket*> clientList;
             } else {
                 item->setText(0, "Ob");
             }
+            saveitem = item->clone();
+            ui->clientTreeWidget->takeTopLevelItem(ui->clientTreeWidget->indexOfTopLevelItem(item));
+            ui->clientTreeWidget->update();
         }
         clientNameHash[port] = name;
-//        foreach(QTcpSocket* sock, clientList) {
-//            if(sock->peerPort() == port){
-//                sock->write(sendArray);
-//                foreach(auto item, ui->clientTreeWidget->findItems(name, Qt::MatchFixedString, 1)) {
-//                    if(item->text(0) != "O") {
-//                        item->setText(0, "O");
-//                        clientList.append(sock);        // QList<QTcpSocket*> clientList;
-////                        clientNameHash[ip] = name;
-//                    }
-//                }
-//            }
-//        }
+        ui->chatTreeWidget->addTopLevelItem(saveitem);
+        ui->chatTreeWidget->resizeColumnToContents(0);
     }
 }
 
 void ChatServer::on_clientTreeWidget_customContextMenuRequested(const QPoint &pos)
 {
-    if(ui->clientTreeWidget->currentItem() == nullptr){
-        inviteAction->setEnabled(false);
+    if(ui->clientTreeWidget->currentItem() == nullptr) {
         return;
     }
 
-    if(ui->clientTreeWidget->is){
-        inviteAction->setEnabled(true);
-        inviteAction->setObjectName("Invite");
-
-        foreach(QAction *action, menu->actions()) {
-            if(action->objectName() == "Invite")
-                action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) != "O");
-            else
-                action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) == "O");
+    foreach(QAction *action, menu->actions()) {
+        if(action->objectName() == "Invite") {
+            action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) != "O");
+        } else {
+            action->setEnabled(ui->clientTreeWidget->currentItem()->text(0) == "O");
         }
-        QPoint globalPos = ui->clientTreeWidget->mapToGlobal(pos);
-        menu->exec(globalPos);
-    } else {
-        inviteAction->setObjectName("");
     }
+    QPoint globalPos = ui->clientTreeWidget->mapToGlobal(pos);
+    menu->exec(globalPos);
+
+}
+
+void ChatServer::on_chatTreeWidget_customContextMenuRequested(const QPoint &pos)
+{
+    if(ui->chatTreeWidget->currentItem() == nullptr){
+        return;
+    }
+
+    foreach(QAction *action, menu->actions()) {
+        if(action->objectName() == "Invite")
+            action->setEnabled(ui->chatTreeWidget->currentItem()->text(0) != "O");
+        else
+            action->setEnabled(ui->chatTreeWidget->currentItem()->text(0) == "O");
+    }
+    QPoint globalPos = ui->chatTreeWidget->mapToGlobal(pos);
+    menu->exec(globalPos);
 }
 
 void ChatServer::acceptConnection()
