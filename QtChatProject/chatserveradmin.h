@@ -4,6 +4,8 @@
 #include <QWidget>
 #include "chatserver.h"
 
+#define BLOCK_SIZE  1024
+
 namespace Ui {
 class ChatServerAdmin;
 }
@@ -13,14 +15,25 @@ class ChatServerAdmin : public QWidget
     Q_OBJECT
 
 public:
-    explicit ChatServerAdmin(int = 0, QString = "", QWidget *parent = nullptr);
+    explicit ChatServerAdmin(QString = "", quint16 = 0, QWidget *parent = nullptr);
     ~ChatServerAdmin();
+
+public slots:
+    void clientChatRecv(QString,QString);
+
+private slots:
+    void on_sendpushButton_clicked();
+    void on_quitpushButton_clicked();
+
+signals:
+    //void sendData(quint16,QString);
+    void sendData(QString,QString);
 
 private:
     Ui::ChatServerAdmin *ui;
 
-    int cid;
     QString cname;
+    quint16 port;
 };
 
 #endif // CHATSERVERADMIN_H

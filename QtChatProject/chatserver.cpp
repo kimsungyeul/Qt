@@ -134,6 +134,7 @@ void ChatServer::receiveData( )
         }
         clientList.append(clientConnection);        // QList<QTcpSocket*> clientList;
         clientSocketHash[name] = clientConnection;  // Login단에서 이름을 key값으로 client포트에 바인드된 소켓포트값 및 데이터 저장
+        portSocketHash[port] = clientConnection;
     }
         break;
 
@@ -156,7 +157,7 @@ void ChatServer::receiveData( )
     case Chat_Talk: {
         foreach(QTcpSocket *sock, clientList) {
             //if(clientNameHash.contains(sock->peerPort()) && sock != clientConnection){   // clientList에 포함된 포트만 채팅되도록 설정
-            if(clientNameHash.contains(sock->peerPort()) && sock == clientConnection){
+            if(clientNameHash.contains(sock->peerPort())){
                 QByteArray sendArray;
                 sendArray.clear();
                 QDataStream out(&sendArray, QIODevice::WriteOnly);
@@ -168,6 +169,9 @@ void ChatServer::receiveData( )
                 sock->write(sendArray);
                 qDebug() << sock->peerPort();
             }
+        }
+        if (clientWindowHash.count() != 0) {\
+            clientWindowHash[clientNameHash[port]]->clientChatRecv(clientNameHash[port],data);
         }
 
         QTreeWidgetItem *logitem = new QTreeWidgetItem(ui->messageTreeWidget);
@@ -214,6 +218,7 @@ void ChatServer::receiveData( )
                 }
                 clientList.removeOne(clientConnection);        // QList<QTcpSocket*> clientList;
                 clientSocketHash.remove(name);             // LogOut시 서버에 접속된 소켓 Data 삭제
+                portSocketHash.remove(port);
             }
         } else {
             foreach(auto item, findchatitem) {
@@ -230,6 +235,7 @@ void ChatServer::receiveData( )
                 }
                 clientList.removeOne(clientConnection);        // QList<QTcpSocket*> clientList;
                 clientSocketHash.remove(name);             // LogOut시 서버에 접속된 소켓 Data 삭제
+                portSocketHash.remove(port);
             }
         }
         break;
@@ -449,9 +455,34 @@ void ChatServer::readClient()
 
 void ChatServer::privateChat()
 {
-    int cid = 1;
     QString cname = ui->chatTreeWidget->currentItem()->text(1);
-    ChatServerAdmin* Admin = new ChatServerAdmin(cid,cname);
-    Admin->setWindowTitle(QString::number(cid) + " " + cname);
+    QTcpSocket* sock = clientSocketHash[cname];
+    quint16 port = sock->peerPort();
+    ChatServerAdmin* Admin = new ChatServerAdmin(cname,port);
+    clientWindowHash[cname] = Admin;
+    //connect(Admin,SIGNAL(sendData(quint16,QString)), SLOT(privateChatSend(quint16,QString)));
+    connect(Admin,SIGNAL(sendData(QString,QString)), SLOT(privateChatSend(QString,QString)));
+
+    Admin->setWindowTitle("Prvate Chat");
     Admin->show();
+}
+
+//void ChatServer::privateChatSend(quint16 port, QString str)
+void ChatServer::privateChatSend(QString name, QString str)
+{
+    foreach(auto item, ui->chatTreeWidget->findItems(name, Qt::MatchFixedString, 1))
+    {
+        QString name = item->text(1);
+        QString ip = QString::number(clientIDHash[name]);
+        QTcpSocket* sock = clientSocketHash[name];
+        QByteArray sendArray;
+        sendArray.clear();
+        QDataStream out(&sendArray, QIODevice::WriteOnly);
+        out << Chat_Talk;
+        sendArray.append("<font color=lightsteelblue>");
+        sendArray.append(name.toStdString().data());
+        sendArray.append("</font> : ");
+        sendArray.append(str.toStdString().data());
+        sock->write(sendArray);
+    }
 }

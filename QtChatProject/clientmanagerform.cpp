@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QMenu>
 
+//ClientManager생성자
 ClientManagerForm::ClientManagerForm(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ClientManagerForm)
