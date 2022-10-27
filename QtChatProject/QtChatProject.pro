@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     chatserver.cpp \
+    chatserveradmin.cpp \
     clientitem.cpp \
     clientmanagerform.cpp \
     logthread.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
 
 HEADERS += \
     chatserver.h \
+    chatserveradmin.h \
     clientitem.h \
     clientmanagerform.h \
     logthread.h \
@@ -33,6 +35,7 @@ HEADERS += \
 
 FORMS += \
     chatserver.ui \
+    chatserveradmin.ui \
     clientmanagerform.ui \
     mainwindow.ui \
     ordermanagerform.ui \
