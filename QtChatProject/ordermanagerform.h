@@ -31,7 +31,6 @@ public slots:
 
     void clientDataListRecv(QList<QString>);
     void clientFindDataRecv(ClientItem*);
-    void getClientIdDataRecv(ClientItem*);
 
     void productDataListRecv(QList<QString>);
     void productFindDataRecv(ProductItem*);
@@ -68,7 +67,6 @@ signals:
 
     void clientDataSent(int);
     void clientDataSent(QString);
-    void getClientItemSent(int);
 
     void productDataSent(int);
     void productDataSent(QString);

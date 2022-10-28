@@ -283,13 +283,6 @@ void OrderManagerForm::on_amountspinBox_valueChanged(int arg1)
     ui->totalpriceLineEdit->setText(QString::number(arg1 * ui->priceLineEdit->text().toInt()));
 }
 
-void OrderManagerForm::getClientIdDataRecv(ClientItem* item)
-{
-    ui->clienttreeWidget->clear();
-
-    //ui->clienttreeWidget->addTopLevelItem(item);
-}
-
 void OrderManagerForm::getProductIdDataRecv(ProductItem* item)
 {
     ui->producttreeWidget->clear();
@@ -310,9 +303,8 @@ void OrderManagerForm::on_ordertreeWidget_itemClicked(QTreeWidgetItem *item, int
     int clientID = clientrow[1].remove(QChar(')'), Qt::CaseInsensitive).toInt();
     int productID = productrow[1].remove(QChar(')'), Qt::CaseInsensitive).toInt();
 
-    //emit getClientItemSent(clientID);
     emit getProductItemSent(productID);
-    //ui->oidLineEdit->setText(item->text(0));
+
     ui->nameLineEdit->setText(item->text(1));
     ui->pnameLineEdit->setText(item->text(2));
     ui->totalpriceLineEdit->setText(item->text(4));

@@ -2,6 +2,7 @@
 #include "ui_chatserver.h"
 #include "logthread.h"
 #include "chatserveradmin.h"
+#include "chatnoticedetails.h"
 
 #include <QLabel>
 #include <QPushButton>
@@ -69,6 +70,7 @@ ChatServer::ChatServer(QWidget *parent) :
     chatmenu->addAction(privateChatAction);
     chatmenu->addAction(removeAction);
     ui->chatTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+
 
     progressDialog = new QProgressDialog(0);
     progressDialog->setAutoClose(true);
@@ -156,8 +158,8 @@ void ChatServer::receiveData( )
         break;
     case Chat_Talk: {
         foreach(QTcpSocket *sock, clientList) {
-            //if(clientNameHash.contains(sock->peerPort()) && sock != clientConnection){   // clientList에 포함된 포트만 채팅되도록 설정
-            if(clientNameHash.contains(sock->peerPort())){
+            if(clientNameHash.contains(sock->peerPort()) && sock != clientConnection){   // clientList에 포함된 포트만 채팅되도록 설정
+            //if(clientNameHash.contains(sock->peerPort())){
                 QByteArray sendArray;
                 sendArray.clear();
                 QDataStream out(&sendArray, QIODevice::WriteOnly);
@@ -170,7 +172,8 @@ void ChatServer::receiveData( )
                 qDebug() << sock->peerPort();
             }
         }
-        if (clientWindowHash.count() != 0) {\
+
+        if (clientWindowHash.count() != 0) {
             clientWindowHash[clientNameHash[port]]->clientChatRecv(clientNameHash[port],data);
         }
 
@@ -470,19 +473,52 @@ void ChatServer::privateChat()
 //void ChatServer::privateChatSend(quint16 port, QString str)
 void ChatServer::privateChatSend(QString name, QString str)
 {
-    foreach(auto item, ui->chatTreeWidget->findItems(name, Qt::MatchFixedString, 1))
-    {
-        QString name = item->text(1);
-        QString ip = QString::number(clientIDHash[name]);
-        QTcpSocket* sock = clientSocketHash[name];
-        QByteArray sendArray;
-        sendArray.clear();
-        QDataStream out(&sendArray, QIODevice::WriteOnly);
-        out << Chat_Talk;
-        sendArray.append("<font color=lightsteelblue>");
-        sendArray.append(name.toStdString().data());
-        sendArray.append("</font> : ");
-        sendArray.append(str.toStdString().data());
-        sock->write(sendArray);
-    }
+    QTcpSocket* sock = clientSocketHash[name];
+    quint16 port = sock->peerPort();
+    QByteArray sendArray;
+    sendArray.clear();
+    QDataStream out(&sendArray, QIODevice::WriteOnly);
+    out << Chat_Talk;
+    sendArray.append("<font color=blue>");
+    sendArray.append("Admin");
+    sendArray.append("</font> : ");
+    sendArray.append(str.toStdString().data());
+    sock->write(sendArray);
+
+
+    QTreeWidgetItem *logitem = new QTreeWidgetItem(ui->messageTreeWidget);
+    logitem->setText(1, QString::number(port));
+    logitem->setText(2, "Admin");
+    logitem->setText(3, "Admin");
+    logitem->setText(4, str);
+    logitem->setText(5, QDateTime::currentDateTime().toString());
+    logitem->setToolTip(4, str);
+
+    for(int i = 0; i < ui->messageTreeWidget->columnCount(); i++)
+        ui->messageTreeWidget->resizeColumnToContents(i);
+
+    ui->messageTreeWidget->addTopLevelItem(logitem);
 }
+
+
+void ChatServer::on_noticepushButton_clicked()
+{
+    if (clientNameHash.count() == 0) {
+        QMessageBox::critical(this, tr("Notice Details"), \
+                              tr("There isn't anybody in the ChatList."));
+        return;
+    }
+
+    ui->noticepushButton->setEnabled(false);
+
+    QList<QTreeWidgetItem*> clientnameList;
+
+
+    ChatNoticeDetails* notice = new ChatNoticeDetails(clientnameList);
+
+    connect(notice, SIGNAL(sendData(QString,QString)), SLOT(privateChatSend(QString,QString)));
+
+    notice->setWindowTitle("Notice Chat");
+    notice->show();
+}
+

@@ -13,6 +13,7 @@ class QFile;
 class QProgressDialog;
 class LogThread;
 class ChatServerAdmin;
+class ChatNoticeDetails;
 
 namespace Ui {
 class ChatServer;
@@ -59,6 +60,8 @@ private slots:
     void on_clientTreeWidget_customContextMenuRequested(const QPoint &pos);
     void on_chatTreeWidget_customContextMenuRequested(const QPoint &pos);
 
+    void on_noticepushButton_clicked();
+
 private:
     const int BLOCK_SIZE = 1024;
     const int PORT_NUMBER = 8000;
@@ -68,6 +71,8 @@ private:
 
     QList<QTcpSocket*> clientList;
     QList<int> clientIDList;
+    QList<QString> chatList;
+
     QHash<quint16, QString> clientNameHash;             // 포트번호로 고객이름을 찾기위함
     QHash<QString, QTcpSocket*> clientSocketHash;       // 고객이름으로 소켓을찾기위함
     QHash<QString, int> clientIDHash;                   // 고객이름으로 ID를 찾기위함

@@ -23,7 +23,6 @@ public slots:
 
 private slots:
     void on_sendpushButton_clicked();
-    void on_quitpushButton_clicked();
 
 signals:
     //void sendData(quint16,QString);
